@@ -7,9 +7,7 @@ import com.example.sequence.SequenceItem;
 
 public class ArraySequence implements Sequence {
     private SequenceItem[] items;
-
     private int size;
-
     private int capacity;
 
     public ArraySequence() {

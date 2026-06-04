@@ -10,6 +10,9 @@
 源代码：[SeqIterator](src/main/java/com/example/sequence/SeqIterator.java)
 
 ## Task4
+源代码：[SeqBiIterator](src/main/java/com/example/sequence/SeqBiIterator.java)
+
+## Task5
 源代码：[ArraySequence](src/main/java/com/example/sequence/impl/ArraySequence.java)
 
 关键片段：
@@ -59,4 +62,37 @@
         }
     }
     ```
+
+## Task6
+源代码：[LinkedSequence](src/main/java/com/example/sequence/impl/LinkedSequence.java)
+
+关键片段：
+- 内部类迭代器（示例）
+    ```java
+    private class LinkedReverseIterator implements SeqIterator {
+        private Node current = tail;
+
+        @Override
+        public boolean hasNext() {
+            return current != null;
+        }
+
+        @Override
+        public SequenceItem next() {
+            if (!hasNext()) {
+                throw new IllegalStateException("No more elements");
+            }
+            SequenceItem item = current.item;
+            current = current.prev;
+            return item;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Remove not supported in LinkedReverseIterator");
+        }
+    }
+    ```
+
+
 
