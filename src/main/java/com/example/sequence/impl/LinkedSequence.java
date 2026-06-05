@@ -193,7 +193,11 @@ public class LinkedSequence implements Sequence {
 
         @Override
         public boolean hasPrevious() {
-            return current != null && current.prev != null;
+            if (current == null) {
+                // 已越过尾部（next 耗尽所有元素），若链表非空则可回退
+                return tail != null;
+            }
+            return current.prev != null;
         }
 
         @Override
@@ -201,7 +205,12 @@ public class LinkedSequence implements Sequence {
             if (!hasPrevious()) {
                 throw new IllegalStateException("No previous elements");
             }
-            current = current.prev;
+            if (current == null) {
+                // 从越过尾部的位置回退到最后一个元素
+                current = tail;
+            } else {
+                current = current.prev;
+            }
             return current.item;
         }
 
