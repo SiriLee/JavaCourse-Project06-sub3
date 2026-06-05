@@ -30,20 +30,14 @@ public class SequenceUtils {
         return lastMatch;
     }
 
-    public static boolean compare(Sequence seq1, Sequence seq2) {
-        if (seq1.size() != seq2.size()) {
-            return false;
-        }
-        SeqIterator it1 = seq1.iterator();
-        SeqIterator it2 = seq2.iterator();
+    public static boolean compare(SeqIterator it1, SeqIterator it2) {
         while (it1.hasNext() && it2.hasNext()) {
-            if (!it1.next().equals(it2.next())) {
+            SequenceItem item1 = it1.next();
+            SequenceItem item2 = it2.next();
+            if (!item1.getData().equals(item2.getData())) {
                 return false;
             }
         }
-        if (it1.hasNext() || it2.hasNext()) {
-            return false; // One of the sequences has extra items
-        }
-        return true;
+        return !it1.hasNext() && !it2.hasNext();
     }
 }
