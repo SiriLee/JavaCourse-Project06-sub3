@@ -94,5 +94,29 @@
     }
     ```
 
+## Task7
+源代码：[SequenceUtils](src/main/java/com/example/sequence/util/SequenceUtils.java)
+
+## Task8
+源代码：[IteratorTest](src/test/java/com/example/sequence/util/IteratorTest.java)
+
+- 说明：
+    > 本程序采用自动化测试，而非输出内容到控制台后比对结果。
+
+- 测试方法：
+    > 需要配置Maven环境
+    ```cmd
+    mvn test -Dtest=sequence.util.IteratorTest
+    ```
+- 运行结果：
+    ```cmd
+    [INFO] Results:
+    [INFO] 
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0
+    [INFO] 
+    [INFO] ------------------------------------------------------------------------
+    [INFO] BUILD SUCCESS
+    [INFO] ------------------------------------------------------------------------
+    ```
 
 
