@@ -168,5 +168,79 @@ public SequenceItem get(int index) {
 **3. 这正是迭代器模式的经典应用场景**
 迭代器模式的核心价值就是将“遍历算法”从容器中分离独立。容器可以各自用内部类实现最适合自己的偶数下标迭代器，但使用方只看到 `SeqIterator` 接口，不关心底层差异。
 
+## Task10
 
+Vibe-coding记录：
+- [claude-conversation](docs/claude-conversation-2026-06-05-ae1bee7c.md)
 
+源代码：
+- [LogAnalyzer](src/main/java/com/example/sequence/util/LogAnalyzer.java)
+- [LogAnalyzerTest](src/test/java/com/example/sequence/util/LogAnalyzerTest.java)
+
+修复：
+- [LinkedSequence — LinkedBiIterator 越尾判空修复](src/main/java/com/example/sequence/impl/LinkedSequence.java#L196-L213)
+
+### 设计概述
+
+基于已完成的 `Sequence` 与迭代器体系，构建了一个日志分析模块。所有分析操作**只通过迭代器访问数据**，同一套代码可同时处理 `ArraySequence` 与 `LinkedSequence`。
+
+日志格式：`LEVEL|timestamp|message`（`LEVEL` = INFO / WARN / ERROR，`timestamp` = 纯数字，`message` = 任意不含竖线的文本）。
+
+### 类结构
+
+| 类 | 位置 | 说明 |
+|---|---|---|
+| `LogAnalyzer` | `com.example.sequence.util` | 核心分析器，提供统计、查找、比较、过滤功能 |
+| `LogAnalyzer.LogRecord` | 内部静态类 | 解析后的日志记录（level / timestamp / message） |
+| `LogAnalyzerTest` | 测试包 `com.example.sequence.util` | 14 个单元测试用例 |
+
+### LogAnalyzer 方法一览
+
+| 方法 | 迭代器 | 功能 |
+|---|---|---|
+| `countByLevel(it, level)` | `SeqIterator` | 统计指定级别日志条数，非法格式忽略并计入累计 |
+| `findLastByKeyword(it, keyword)` | `SeqBiIterator` | 从后往前查找 message 含关键字的日志（区分大小写） |
+| `findLastByLevel(it, level)` | `SeqBiIterator` | 从后往前查找指定级别的日志（大小写不敏感） |
+| `isSameLogSequence(it1, it2)` | `SeqIterator` ×2 | 比较两个迭代器数据流完全一致（内容 + 顺序） |
+| `filterByKeyword(it, keyword)` | `SeqIterator` | 筛选 message 含关键字的日志到新 `ArraySequence` |
+
+### 私有辅助
+
+| 方法/字段 | 说明 |
+|---|---|
+| `parseLog(String data)` | 解析 `LEVEL\|timestamp\|message` 为 `LogRecord`，格式不合法返回 `null` 并记录 WARNING |
+| `logIllegalEntry(String rawData)` | 累加非法计数 + `LOGGER.warning()` |
+| `getInvalidLogCount()` / `resetIllegalLogCount()` | 查询 / 重置累计非法日志数 |
+
+### 测试方法
+
+```cmd
+mvn test -Dtest=sequence.util.LogAnalyzerTest
+```
+
+运行结果：
+
+```cmd
+Tests run: 14, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
+测试覆盖场景：
+
+- `countByLevel`：ArraySequence / LinkedSequence 各自统计 ERROR=3 / INFO=1；null 参数防护；非法日志累计计数验证
+- `findLastByKeyword`：两个序列分别从后往前按关键字查找；关键字不存在返回 null
+- `findLastByLevel`：从后往前按级别查找，命中最后一条匹配项
+- `isSameLogSequence`：内容相同 → true；修改一条后 → false；同一引用快速路径
+- `filterByKeyword`：大小写敏感匹配；null 迭代器/关键字返回空序列；遍历结果验证
+
+### 关键设计要点
+
+**1. 纯迭代器访问** — 所有方法内部只通过 `hasNext()` / `next()` / `hasPrevious()` / `previous()` 访问数据，不使用 `get(i)`。这使得同一套分析逻辑对 `ArraySequence` 和 `LinkedSequence` 均适用。
+
+**2. 非法日志追踪** — `parseLog` 在解析失败时自动调用 `logIllegalEntry`，累加静态计数器并通过 `Logger.warning()` 输出原始内容，避免排查时丢失现场信息。非法计数跨调用累计，可随时查询或重置。
+
+**3. 双向查找自动就位** — `findLastByKeyword` 和 `findLastByLevel` 内部先将迭代器移动到末尾（`while(it.hasNext()) it.next()`），再通过 `previous()` 从后往前扫描，不依赖调用方传入时的迭代器位置。
+
+**4. Bug 修复 — LinkedBiIterator 越尾判空** — 原实现中 `hasPrevious()` 判断条件为 `current != null && current.prev != null`，当 `next()` 耗尽链表后 `current == null`，导致 `hasPrevious()` 始终返回 `false`，双向回退完全失效。修复后在 `current == null` 时退化为 `tail != null` 判断，`previous()` 中同步处理回退到 `tail` 的逻辑。
+
+**5. 未来扩展方向** — 类 Javadoc 中讨论了按小时聚合统计（复用 `parseLog` + `timestamp`，零改动）、以及大规模场景下 `filterByKeyword` 的懒加载视图方案（自定义 `FilteredLogSequence implements Sequence`，O(1) 内存）。
