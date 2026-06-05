@@ -84,7 +84,7 @@ public class ArraySequence implements Sequence {
     }
 
     @Override
-    public SeqIterator biIterator() {
+    public SeqBiIterator biIterator() {
         return new BidirectionalIterator();
     }
 
