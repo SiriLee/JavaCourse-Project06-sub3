@@ -19,18 +19,15 @@ public class SequenceUtils {
 
     public static int findLast(SeqBiIterator it, String target) {
         int index = -1;
+        int lastMatch = -1;
         while (it.hasNext()) {
-            it.next();
+            SequenceItem item = it.next();
             index++;
-        }
-        while (it.hasPrevious()) {
-            SequenceItem item = it.previous();
             if (item.getData().equals(target)) {
-                return index;
+                lastMatch = index;
             }
-            index--;
         }
-        return -1; // Not found
+        return lastMatch;
     }
 
     public static boolean compare(Sequence seq1, Sequence seq2) {
