@@ -17,17 +17,20 @@ public class SequenceUtils {
         return count;
     }
 
-    public static SeqBiIterator findLast(SeqBiIterator it, String target) {
+    public static int findLast(SeqBiIterator it, String target) {
+        int index = -1;
         while (it.hasNext()) {
             it.next();
+            index++;
         }
         while (it.hasPrevious()) {
             SequenceItem item = it.previous();
             if (item.getData().equals(target)) {
-                return it; // Return the iterator at the found item
+                return index;
             }
+            index--;
         }
-        return null; // Return null if the item is not found
+        return -1; // Not found
     }
 
     public static boolean compare(Sequence seq1, Sequence seq2) {
