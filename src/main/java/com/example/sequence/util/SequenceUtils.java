@@ -1,6 +1,5 @@
 package com.example.sequence.util;
 
-import com.example.sequence.Sequence;
 import com.example.sequence.SequenceItem;
 import com.example.sequence.SeqIterator;
 import com.example.sequence.SeqBiIterator;
